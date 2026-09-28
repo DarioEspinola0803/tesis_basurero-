@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSmart - Panel de control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+       <aside class="sidebar">
+    <div class="logo">
+        <i class="fa-solid fa-recycle"></i>
+        <span>EcoSmart</span>
+    </div>
+    <nav>
+        <div class="nav-item active" onclick="mostrarSeccion('dashboard')">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="mostrarSeccion('contenedores')">
+            <i class="fa-solid fa-trash-can"></i> Mis Contenedores
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-bell"></i> Alertas
+        </div>
+        
+        <hr style="border: 0.5px solid #374151; margin: 15px 0; opacity: 0.3;">
+        
+        <div class="nav-item btn-add-sidebar" onclick="alert('Funcionalidad Administrativa: Abriendo formulario para nueva Sede o Piso')">
+            <i class="fa-solid fa-plus-circle"></i> Agregar Sede
+        </div>
+    </nav>
+    
+    <div class="status-box">
+        <p><i class="fa-solid fa-circle"></i> Sistema Conectado</p>
+        <small>Actualización: 14:32:15</small>
+    </div>
+</aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Panel de control</h1>
+                    <span>Monitoreo en tiempo real de contenedores</span>
+                </div>
+                <div class="user-info">
+                    <i class="fa-solid fa-bell notification"></i>
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span>Administrador</span>
+                </div>
+            </header>
+
+            <section class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-trash-can icon-blue"></i>
+                        <h3>Plástico</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="location-text"><i class="fa-solid fa-location-dot"></i> <span id="loc-plastico">Cargando...</span></p>
+                        <span class="percentage" id="val-plastico">0%</span>
+                        <div class="progress-bar"><div class="fill blue" id="bar-plastico"></div></div>
+                        <span class="status-label label-orange">Estado: Medio</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-trash-can icon-green"></i>
+                        <h3>Papel</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="location-text"><i class="fa-solid fa-location-dot"></i> <span id="loc-papel">Cargando...</span></p>
+                        <span class="percentage" id="val-papel">0%</span>
+                        <div class="progress-bar"><div class="fill green" id="bar-papel"></div></div>
+                        <span class="status-label label-green">Estado: Bajo</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-trash-can icon-red"></i>
+                        <h3>Orgánico</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="location-text"><i class="fa-solid fa-location-dot"></i> <span id="loc-organico">Cargando...</span></p>
+                        <span class="percentage" id="val-organico">0%</span>
+                        <div class="progress-bar"><div class="fill red" id="bar-organico"></div></div>
+                        <span class="status-label label-red">Estado: Lleno</span>
+                    </div>
+                </div>
+            </section>
+            </section> <div class="add-container">
+    
+</div>
+
+            <section class="chart-section">
+                <div class="chart-card">
+                    <h3>Historial de llenado (últimos 7 días)</h3>
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
