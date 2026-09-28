@@ -42,7 +42,7 @@ def clasificar_imagen(img_cv2):
 
 # --- RUTA PARA VISUALIZAR LA PÁGINA WEB ---
 @app.route("/web", methods=["GET"])
-def ver_panel():
+def home():
     return render_template("index.html")
 
 # --- RECIBE LA FOTO DIRECTAMENTE EN LA RAÍZ "/" ---
