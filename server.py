@@ -1,498 +1,340 @@
 from flask import Flask, request, jsonify, render_template
+import tensorflow as tf
 import numpy as np
 import cv2
-import tensorflow as tf
 import os
 from datetime import datetime
 
 app = Flask(__name__)
 
-# ============================================================
-# CARGAR MODELO DE IA
-# ============================================================
+# ==========================================================
+# CONFIGURACIÓN
+# ==========================================================
 
-print("Cargando modelo de IA (MobileNetV2)...")
+MODEL_PATH = "modelo_residuos.h5"
 
-model = tf.keras.applications.MobileNetV2(weights="imagenet")
-
-decode_predictions = (
-    tf.keras.applications.mobilenet_v2.decode_predictions
-)
-
-print("Modelo cargado y listo.")
-
-
-# ============================================================
-# ESTADO ACTUAL DE LOS CONTENEDORES
-#
-# Por ahora se guarda en memoria.
-#
 # IMPORTANTE:
-# En Render esto se reinicia si el servidor se reinicia.
-# Para la primera etapa/prototipo está bien.
-# Más adelante podemos utilizar una base de datos.
-# ============================================================
+# Este orden debe coincidir con el orden de las clases
+# utilizado durante el entrenamiento.
+CLASES = [
+    "organico",
+    "papel-carton",
+    "plastico"
+]
+
+# ==========================================================
+# ESTADO ACTUAL DE LOS CONTENEDORES
+# ==========================================================
 
 niveles = {
-    1: {
-        "nombre": "PLASTICO",
-        "distancia_cm": None,
-        "nivel": 0,
-        "ultima_actualizacion": None
+    "organico": {
+        "distancia": 0,
+        "porcentaje": 0
     },
-
-    2: {
-        "nombre": "PAPEL-CARTON",
-        "distancia_cm": None,
-        "nivel": 0,
-        "ultima_actualizacion": None
+    "papel-carton": {
+        "distancia": 0,
+        "porcentaje": 0
     },
-
-    3: {
-        "nombre": "ORGANICO",
-        "distancia_cm": None,
-        "nivel": 0,
-        "ultima_actualizacion": None
+    "plastico": {
+        "distancia": 0,
+        "porcentaje": 0
     }
 }
 
-
-# ============================================================
-# CLASIFICACIÓN DE IMAGEN
-# ============================================================
-
-def clasificar_imagen(img_cv2):
-
-    img_rgb = cv2.cvtColor(
-        img_cv2,
-        cv2.COLOR_BGR2RGB
-    )
-
-    img_resized = cv2.resize(
-        img_rgb,
-        (224, 224)
-    )
-
-    img_array = np.array(img_resized)
-
-    img_final = np.expand_dims(
-        img_array,
-        axis=0
-    )
-
-    img_final = (
-        tf.keras.applications.mobilenet_v2
-        .preprocess_input(img_final)
-    )
-
-    pred = model.predict(
-        img_final,
-        verbose=0
-    )
-
-    resultados = decode_predictions(
-        pred,
-        top=3
-    )[0]
-
-    etiquetas = [
-        r[1].lower()
-        for r in resultados
-    ]
-
-    confianza = float(
-        resultados[0][2] * 100
-    )
-
-    print(
-        f"\n[IA] Predicciones: "
-        f"{etiquetas} "
-        f"({confianza:.1f}%)"
-    )
-
-    # --------------------------------------------------------
-    # CLASIFICACIÓN ACTUAL
-    #
-    # Esto es una aproximación utilizando etiquetas
-    # de ImageNet.
-    #
-    # Más adelante reemplazaremos esto por el modelo
-    # entrenado específicamente con las 3 clases.
-    # --------------------------------------------------------
-
-    tipo_residuo = 2
-
-    for etiqueta in etiquetas:
-
-        # PLÁSTICO
-        if any(
-            k in etiqueta
-            for k in [
-                "bottle",
-                "plastic",
-                "cup",
-                "can"
-            ]
-        ):
-            tipo_residuo = 1
-            break
-
-        # PAPEL / CARTÓN
-        elif any(
-            k in etiqueta
-            for k in [
-                "paper",
-                "book",
-                "carton"
-            ]
-        ):
-            tipo_residuo = 2
-            break
-
-        # ORGÁNICO
-        elif any(
-            k in etiqueta
-            for k in [
-                "banana",
-                "food",
-                "fruit",
-                "orange"
-            ]
-        ):
-            tipo_residuo = 3
-            break
-
-    return (
-        tipo_residuo,
-        resultados[0][1],
-        confianza
-    )
+ultimo_residuo = {
+    "tipo": "Ninguno",
+    "confianza": 0,
+    "hora": "--:--:--"
+}
 
 
-# ============================================================
-# PÁGINA WEB
-# ============================================================
+# ==========================================================
+# CARGAR MODELO
+# ==========================================================
 
-@app.route(
-    "/web",
-    methods=["GET"]
-)
-def home():
+print("=" * 50)
+print("CARGANDO MODELO DE IA...")
+print("=" * 50)
 
+if not os.path.exists(MODEL_PATH):
+    print(f"ERROR: No se encuentra {MODEL_PATH}")
+    exit()
+
+model = tf.keras.models.load_model(MODEL_PATH)
+
+print("Modelo cargado correctamente.")
+print("Clases:", CLASES)
+print("=" * 50)
+
+
+# ==========================================================
+# FUNCIÓN PARA CLASIFICAR IMAGEN
+# ==========================================================
+
+def predecir_imagen(ruta_imagen):
+
+    img = cv2.imread(ruta_imagen)
+
+    if img is None:
+        print("ERROR: No se pudo leer la imagen.")
+        return None
+
+    # OpenCV lee BGR
+    # TensorFlow trabaja normalmente con RGB
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # Mismo tamaño utilizado durante entrenamiento
+    img_resized = cv2.resize(img_rgb, (224, 224))
+
+    # Convertir a array
+    img_array = tf.keras.preprocessing.image.img_to_array(img_resized)
+
+    # Agregar dimensión de batch
+    img_array = np.expand_dims(img_array, axis=0)
+
+    # NO dividir entre 255
+    # El modelo ya posee:
+    # Rescaling(1./255)
+
+    predicciones = model.predict(img_array, verbose=0)
+
+    indice = np.argmax(predicciones[0])
+
+    clase = CLASES[indice]
+
+    confianza = float(predicciones[0][indice])
+
+    print("\n" + "=" * 50)
+    print("RESULTADO DE LA DETECCIÓN")
+    print("=" * 50)
+
+    for i, nombre in enumerate(CLASES):
+        porcentaje = predicciones[0][i] * 100
+        print(f"{nombre}: {porcentaje:.2f}%")
+
+    print("-" * 50)
+    print(f"RESIDUO: {clase.upper()}")
+    print(f"CONFIANZA: {confianza * 100:.2f}%")
+    print("=" * 50)
+
+    return clase, confianza
+
+
+# ==========================================================
+# PÁGINA PRINCIPAL
+# ==========================================================
+
+@app.route("/")
+def inicio():
     return render_template(
-        "index.html"
+        "index.html",
+        niveles=niveles,
+        ultimo=ultimo_residuo
     )
 
 
-# ============================================================
-# RECIBIR FOTO DEL ESP32-CAM
-#
-# ESP32:
-#
-# POST /
-# Content-Type: image/jpeg
-#
-# Respuesta:
-#
-# {
-#     "tipo_residuo": 1
-# }
-# ============================================================
+# ==========================================================
+# API - CLASIFICAR IMAGEN
+# ==========================================================
 
-@app.route(
-    "/",
-    methods=["POST"]
-)
+@app.route("/clasificar", methods=["POST"])
 def clasificar():
 
+    if "imagen" not in request.files:
+        return jsonify({
+            "error": "No se recibió ninguna imagen"
+        }), 400
+
+    archivo = request.files["imagen"]
+
+    if archivo.filename == "":
+        return jsonify({
+            "error": "Nombre de archivo vacío"
+        }), 400
+
+    ruta_imagen = "imagen_recibida.jpg"
+
     try:
 
-        print(
-            "\n--> ¡Foto recibida "
-            "en el servidor!"
-        )
+        archivo.save(ruta_imagen)
 
-        img_bytes = request.data
+        print("\nImagen recibida desde ESP32-CAM.")
 
-        if not img_bytes:
+        resultado = predecir_imagen(ruta_imagen)
 
+        if resultado is None:
             return jsonify({
-                "error":
-                "No se recibieron datos"
-            }), 400
+                "error": "No se pudo procesar la imagen"
+            }), 500
 
-        # Convertir bytes a imagen
-        nparr = np.frombuffer(
-            img_bytes,
-            np.uint8
-        )
+        clase, confianza = resultado
 
-        img = cv2.imdecode(
-            nparr,
-            cv2.IMREAD_COLOR
-        )
+        # Guardar último resultado
+        ultimo_residuo["tipo"] = clase
+        ultimo_residuo["confianza"] = round(confianza * 100, 2)
+        ultimo_residuo["hora"] = datetime.now().strftime("%H:%M:%S")
 
-        if img is None:
-
-            return jsonify({
-                "error":
-                "Imagen corrupta"
-            }), 400
-
-        # Clasificar
-        tipo, etiqueta, confianza = (
-            clasificar_imagen(img)
-        )
-
-        nombres = {
-            1: "PLASTICO",
-            2: "PAPEL-CARTON",
-            3: "ORGANICO"
-        }
-
-        nombre_detectado = nombres.get(
-            tipo,
-            "DESCONOCIDO"
-        )
-
-        print(
-            f"--> Resultado: "
-            f"{nombre_detectado} "
-            f"(Tipo: {tipo})"
-        )
-
-        print(
-            f"--> Etiqueta IA: "
-            f"{etiqueta}"
-        )
-
-        print(
-            f"--> Confianza: "
-            f"{confianza:.1f}%"
-        )
-
-        # Respuesta al ESP32-CAM
         return jsonify({
-            "tipo_residuo": tipo
+            "residuo": clase,
+            "confianza": round(confianza * 100, 2)
         })
 
     except Exception as e:
 
-        print(
-            f"ERROR clasificación: {e}"
-        )
+        print("ERROR:", e)
 
         return jsonify({
             "error": str(e)
         }), 500
 
 
-# ============================================================
-# RECIBIR NIVEL DE CONTENEDOR
-#
-# ESP32 envía:
-#
-# {
-#     "tipo_residuo": 2,
-#     "distancia_cm": 18.5,
-#     "nivel": 67
-# }
-#
-# El servidor guarda el dato correspondiente.
-# ============================================================
+# ==========================================================
+# API - RECIBIR NIVELES DE LLENADO
+# ==========================================================
 
-@app.route(
-    "/nivel",
-    methods=["POST"]
-)
-def recibir_nivel():
+@app.route("/niveles", methods=["POST"])
+def recibir_niveles():
 
     try:
 
-        datos = request.get_json(
-            silent=True
-        )
+        datos = request.get_json()
 
         if not datos:
-
             return jsonify({
-                "error":
-                "No se recibió JSON"
+                "error": "No se recibieron datos"
             }), 400
 
-        # ------------------------------------
-        # Obtener datos
-        # ------------------------------------
+        # --------------------------------------------------
+        # ORGÁNICO
+        # --------------------------------------------------
 
-        tipo = datos.get(
-            "tipo_residuo"
-        )
+        if "organico" in datos:
 
-        distancia = datos.get(
-            "distancia_cm"
-        )
+            distancia = float(datos["organico"])
 
-        nivel = datos.get(
-            "nivel"
+            niveles["organico"]["distancia"] = round(distancia, 1)
+
+            niveles["organico"]["porcentaje"] = calcular_porcentaje(
+                distancia
+            )
+
+        # --------------------------------------------------
+        # PAPEL-CARTÓN
+        # --------------------------------------------------
+
+        if "papel-carton" in datos:
+
+            distancia = float(datos["papel-carton"])
+
+            niveles["papel-carton"]["distancia"] = round(distancia, 1)
+
+            niveles["papel-carton"]["porcentaje"] = calcular_porcentaje(
+                distancia
+            )
+
+        # --------------------------------------------------
+        # PLÁSTICO
+        # --------------------------------------------------
+
+        if "plastico" in datos:
+
+            distancia = float(datos["plastico"])
+
+            niveles["plastico"]["distancia"] = round(distancia, 1)
+
+            niveles["plastico"]["porcentaje"] = calcular_porcentaje(
+                distancia
+            )
+
+        print("\nNIVELES ACTUALIZADOS")
+
+        print(
+            "Orgánico:",
+            niveles["organico"]["porcentaje"],
+            "%"
         )
 
         print(
-            "\n--> NIVEL RECIBIDO"
+            "Papel-cartón:",
+            niveles["papel-carton"]["porcentaje"],
+            "%"
         )
 
         print(
-            f"Tipo: {tipo}"
+            "Plástico:",
+            niveles["plastico"]["porcentaje"],
+            "%"
         )
-
-        print(
-            f"Distancia: {distancia} cm"
-        )
-
-        print(
-            f"Nivel: {nivel}%"
-        )
-
-        # ------------------------------------
-        # Validar tipo
-        # ------------------------------------
-
-        if tipo not in [1, 2, 3]:
-
-            return jsonify({
-                "error":
-                "Tipo de residuo inválido"
-            }), 400
-
-        # ------------------------------------
-        # Validar nivel
-        # ------------------------------------
-
-        if nivel is None:
-
-            return jsonify({
-                "error":
-                "No se recibió nivel"
-            }), 400
-
-        nivel = float(nivel)
-
-        if nivel < 0:
-            nivel = 0
-
-        if nivel > 100:
-            nivel = 100
-
-        # ------------------------------------
-        # Guardar
-        # ------------------------------------
-
-        niveles[tipo][
-            "distancia_cm"
-        ] = distancia
-
-        niveles[tipo][
-            "nivel"
-        ] = nivel
-
-        niveles[tipo][
-            "ultima_actualizacion"
-        ] = datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-
-        print(
-            f"--> Contenedor "
-            f"{niveles[tipo]['nombre']} "
-            f"actualizado: "
-            f"{nivel:.0f}%"
-        )
-
-        # ------------------------------------
-        # Respuesta al ESP32
-        # ------------------------------------
 
         return jsonify({
-            "ok": True,
-            "tipo_residuo": tipo,
-            "nivel": nivel
+            "mensaje": "Niveles actualizados correctamente"
         })
 
     except Exception as e:
 
-        print(
-            f"ERROR recibiendo nivel: {e}"
-        )
+        print("ERROR NIVELES:", e)
 
         return jsonify({
             "error": str(e)
         }), 500
 
 
-# ============================================================
-# CONSULTAR ESTADO DE LOS CONTENEDORES
-#
-# GET /estado
-#
-# Devuelve los tres niveles.
-# Esto será útil para el dashboard.
-# ============================================================
+# ==========================================================
+# CALCULAR PORCENTAJE DE LLENADO
+# ==========================================================
 
-@app.route(
-    "/estado",
-    methods=["GET"]
-)
-def obtener_estado():
+def calcular_porcentaje(distancia):
+
+    # MODIFICAR ESTOS VALORES SEGÚN TU CONTENEDOR REAL
+
+    DISTANCIA_VACIO = 35.0
+    DISTANCIA_LLENO = 5.0
+
+    if distancia >= DISTANCIA_VACIO:
+        return 0
+
+    if distancia <= DISTANCIA_LLENO:
+        return 100
+
+    porcentaje = (
+        (DISTANCIA_VACIO - distancia)
+        /
+        (DISTANCIA_VACIO - DISTANCIA_LLENO)
+    ) * 100
+
+    porcentaje = max(0, min(100, porcentaje))
+
+    return round(porcentaje)
+
+
+# ==========================================================
+# API - CONSULTAR ESTADO
+# ==========================================================
+
+@app.route("/estado", methods=["GET"])
+def estado():
 
     return jsonify({
-        "plastico": niveles[1],
-        "papel_carton": niveles[2],
-        "organico": niveles[3]
+        "niveles": niveles,
+        "ultimo_residuo": ultimo_residuo
     })
 
 
-# ============================================================
-# RUTA DE PRUEBA
-# ============================================================
-
-@app.route(
-    "/",
-    methods=["GET"]
-)
-def inicio():
-
-    return jsonify({
-        "sistema": "EcoSmart",
-        "estado": "online",
-        "endpoints": {
-            "clasificacion": "POST /",
-            "nivel": "POST /nivel",
-            "estado": "GET /estado",
-            "dashboard": "GET /web"
-        }
-    })
-
-
-# ============================================================
-# EJECUTAR SERVIDOR
-# ============================================================
+# ==========================================================
+# INICIAR SERVIDOR
+# ==========================================================
 
 if __name__ == "__main__":
 
-    port = int(
-        os.environ.get(
-            "PORT",
-            5000
-        )
-    )
+    print("\n======================================")
+    print(" SERVIDOR DEL BASURERO INTELIGENTE")
+    print("======================================")
+    print("Servidor iniciado en puerto 5000")
+    print("Página: http://TU_IP:5000")
+    print("======================================\n")
 
     app.run(
         host="0.0.0.0",
-        port=port,
-        debug=False,
-        threaded=False
+        port=5000,
+        debug=False
     )
-
-if __name__ == "__main__":
-    # Toma el puerto que le asigna Render dinámicamente, o usa el 5000 por defecto en local
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False, threaded=False)
