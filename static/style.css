@@ -1,153 +1,157 @@
-:root {
-    --bg-color: #f8f9fa;
-    --sidebar-color: #111827;
-    --text-main: #374151;
-    --white: #ffffff;
-    --blue: #3b82f6;
-    --green: #10b981;
-    --red: #ef4444;
+* {
+    box-sizing: border-box;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
 
-body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-main); }
+    margin: 0;
 
-.container { display: flex; height: 100vh; }
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
-/* Sidebar */
-.sidebar { width: 260px; background: var(--sidebar-color); color: white; padding: 25px; display: flex; flex-direction: column; }
-.logo { font-size: 1.5rem; font-weight: 600; margin-bottom: 40px; display: flex; gap: 10px; align-items: center; }
-.logo i { color: var(--green); }
-.nav-item { padding: 12px; margin-bottom: 5px; cursor: pointer; border-radius: 8px; display: flex; gap: 12px; align-items: center; transition: 0.3s; }
-.nav-item:hover { background: #1f2937; }
-.nav-item.active { background: #059669; color: white; }
-.status-box { margin-top: auto; padding: 15px; background: #1f2937; border-radius: 10px; }
-.status-box p { color: #10b981; font-size: 0.9rem; margin-bottom: 5px; }
+    background: #f2f5f3;
 
-/* Content Area */
-.main-content { flex: 1; padding: 30px; overflow-y: auto; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.header-title h1 { font-size: 1.8rem; }
-.user-info { display: flex; align-items: center; gap: 20px; font-size: 1.2rem; color: #6b7280; }
-
-/* Cards Grid */
-.cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 30px; }
-.card { background: var(--white); padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-.card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-.card-header i { font-size: 1.5rem; }
-.icon-blue { color: var(--blue); }
-.icon-green { color: var(--green); }
-.icon-red { color: var(--red); }
-
-.percentage { font-size: 2.2rem; font-weight: 700; display: block; margin-bottom: 10px; }
-.progress-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
-.fill { height: 100%; transition: width 1s ease-in-out; }
-.blue { background: var(--blue); }
-.green { background: var(--green); }
-.red { background: var(--red); }
-
-.status-label { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
-.label-orange { background: #ffedd5; color: #9a3412; }
-.label-green { background: #dcfce7; color: #166534; }
-.label-red { background: #fee2e2; color: #991b1b; }
-
-/* Chart */
-.chart-card { background: var(--white); padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-canvas { width: 100% !important; height: 300px !important; }
-/* --- ADAPTACIÓN PARA CELULARES (RESPONSIVE) --- */
-@media (max-width: 768px) {
-    .container {
-        flex-direction: column; /* Apila la barra arriba y el contenido abajo */
-        height: auto;
-    }
-
-    .sidebar {
-        width: 100%;
-        height: auto;
-        padding: 15px;
-    }
-
-    .logo {
-        margin-bottom: 15px;
-        justify-content: center;
-    }
-
-    nav {
-        display: flex;
-        justify-content: space-around; /* Iconos en fila */
-    }
-
-    .nav-item {
-        margin-bottom: 0;
-        font-size: 0.8rem;
-        flex-direction: column;
-        gap: 5px;
-        padding: 10px;
-    }
-
-    .status-box {
-        display: none; /* Ocultamos esto en celular para ganar espacio */
-    }
-
-    .main-content {
-        padding: 15px;
-    }
-
-    .header {
-        flex-direction: column;
-        text-align: center;
-        gap: 15px;
-    }
-
-    .cards-grid {
-        grid-template-columns: 1fr; /* Una tarjeta debajo de otra */
-    }
-
-    .percentage {
-        font-size: 1.8rem;
-    }
-    .location-text {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    color: #222;
 }
 
-.add-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-    margin-bottom: 30px;
+
+.contenedor {
+
+    width: 90%;
+
+    max-width: 1100px;
+
+    margin: 40px auto;
+
+    text-align: center;
 }
 
-.btn-add {
-    background: #059669;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: 0.3s;
-}
-/* Estilo para el botón verde de la barra lateral */
-.btn-add-sidebar {
-    color: #10b981 !important; /* Verde esmeralda */
-    font-weight: 600 !important;
-    margin-top: 10px;
+
+h1 {
+
+    font-size: 38px;
+
+    margin-bottom: 5px;
+
 }
 
-.btn-add-sidebar:hover {
-    background: #064e3b !important;
-    color: white !important;
+
+.subtitulo {
+
+    color: #666;
+
+    margin-bottom: 35px;
+
 }
 
-hr {
+
+.resultado {
+
+    background: white;
+
+    border-radius: 15px;
+
+    padding: 25px;
+
+    margin-bottom: 35px;
+
+    box-shadow:
+        0 4px 15px
+        rgba(0,0,0,0.08);
+
+}
+
+
+#ultimoTipo {
+
+    font-size: 32px;
+
+    font-weight: bold;
+
+    margin: 15px;
+
+}
+
+
+.contenedores {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(250px, 1fr)
+        );
+
+    gap: 20px;
+
+}
+
+
+.tarjeta {
+
+    background: white;
+
+    border-radius: 15px;
+
+    padding: 25px;
+
+    box-shadow:
+        0 4px 15px
+        rgba(0,0,0,0.08);
+
+}
+
+
+.tarjeta h3 {
+
+    font-size: 22px;
+
+    margin-bottom: 25px;
+
+}
+
+
+.barra {
+
     width: 100%;
+
+    height: 30px;
+
+    background: #ddd;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+
 }
+
+
+.relleno {
+
+    height: 100%;
+
+    background: #35a853;
+
+    transition:
+        width 0.5s ease;
+
+}
+
+
+.tarjeta p {
+
+    font-size: 18px;
+
+}
+
+
+.actualizacion {
+
+    margin-top: 35px;
+
+    color: #777;
+
 }
