@@ -1,116 +1,294 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoSmart - Panel de control</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Vinculación correcta de CSS en Flask -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Basurero Inteligente</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
 
-    <div class="container">
-        <!-- BARRA LATERAL -->
-        <aside class="sidebar">
-            <div class="logo">
-                <i class="fa-solid fa-recycle"></i>
-                <span>EcoSmart</span>
-            </div>
-            <nav>
-                <div class="nav-item active" onclick="mostrarSeccion('dashboard')">
-                    <i class="fa-solid fa-chart-line"></i> Dashboard
-                </div>
-                <div class="nav-item" onclick="mostrarSeccion('contenedores')">
-                    <i class="fa-solid fa-trash-can"></i> Mis Contenedores
-                </div>
-                <div class="nav-item" onclick="mostrarSeccion('alertas')">
-                    <i class="fa-solid fa-bell"></i> Alertas
-                </div>
-                
-                <hr style="border: 0.5px solid #374151; margin: 15px 0; opacity: 0.3;">
-                
-                <div class="nav-item btn-add-sidebar" onclick="alert('Funcionalidad Administrativa: Abriendo formulario para nueva Sede o Piso')">
-                    <i class="fa-solid fa-plus-circle"></i> Agregar Sede
-                </div>
-            </nav>
-            
-            <div class="status-box">
-                <p><i class="fa-solid fa-circle"></i> Sistema Conectado</p>
-                <small>Actualización: En vivo</small>
-            </div>
-        </aside>
+<div class="contenedor">
 
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="main-content">
-            <header class="header">
-                <div class="header-title">
-                    <h1>Panel de control</h1>
-                    <span>Monitoreo en tiempo real de contenedores</span>
-                </div>
-                <div class="user-info">
-                    <i class="fa-solid fa-bell notification"></i>
-                    <i class="fa-solid fa-circle-user"></i>
-                    <span>Administrador</span>
-                </div>
-            </header>
+    <h1>♻️ Basurero Inteligente</h1>
 
-            <!-- SECCIÓN DASHBOARD -->
-            <div id="seccion-dashboard">
-                <section class="cards-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fa-solid fa-trash-can icon-blue"></i>
-                            <h3>Plástico</h3>
-                        </div>
-                        <div class="card-body">
-                            <p class="location-text"><i class="fa-solid fa-location-dot"></i> <span id="loc-plastico">Cargando...</span></p>
-                            <span class="percentage" id="val-plastico">0%</span>
-                            <div class="progress-bar"><div class="fill blue" id="bar-plastico"></div></div>
-                            <span class="status-label label-orange" id="status-plastico">Estado: Normal</span>
-                        </div>
-                    </div>
+    <p class="subtitulo">
+        Sistema inteligente de clasificación y monitoreo
+        de residuos
+    </p>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fa-solid fa-trash-can icon-green"></i>
-                            <h3>Papel</h3>
-                        </div>
-                        <div class="card-body">
-                            <p class="location-text"><i class="fa-solid fa-location-dot"></i> <span id="loc-papel">Cargando...</span></p>
-                            <span class="percentage" id="val-papel">0%</span>
-                            <div class="progress-bar"><div class="fill green" id="bar-papel"></div></div>
-                            <span class="status-label label-green" id="status-papel">Estado: Bajo</span>
-                        </div>
-                    </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fa-solid fa-trash-can icon-red"></i>
-                            <h3>Orgánico</h3>
-                        </div>
-                        <div class="card-body">
-                            <p class="location-text"><i class="fa-solid fa-location-dot"></i> <span id="loc-organico">Cargando...</span></p>
-                            <span class="percentage" id="val-organico">0%</span>
-                            <div class="progress-bar"><div class="fill red" id="bar-organico"></div></div>
-                            <span class="status-label label-red" id="status-organico">Estado: Lleno</span>
-                        </div>
-                    </div>
-                </section>
+    <!-- ===================================== -->
+    <!-- ÚLTIMO RESIDUO -->
+    <!-- ===================================== -->
 
-                <section class="chart-section">
-                    <div class="chart-card">
-                        <h3>Historial de llenado (últimos 7 días)</h3>
-                        <canvas id="lineChart"></canvas>
-                    </div>
-                </section>
-            </div>
-        </main>
+    <div class="resultado">
+
+        <h2>Último residuo detectado</h2>
+
+        <div id="ultimoTipo">
+            {{ ultimo.tipo|upper }}
+        </div>
+
+        <p>
+            Confianza:
+            <strong id="ultimaConfianza">
+                {{ ultimo.confianza }}%
+            </strong>
+        </p>
+
+        <p>
+            Hora:
+            <strong id="ultimaHora">
+                {{ ultimo.hora }}
+            </strong>
+        </p>
+
     </div>
 
-    <!-- SCRIPT DE GRÁFICOS Y LÓGICA -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <!-- ===================================== -->
+    <!-- CONTENEDORES -->
+    <!-- ===================================== -->
+
+    <h2>Nivel de llenado</h2>
+
+    <div class="contenedores">
+
+
+        <!-- ORGÁNICO -->
+
+        <div class="tarjeta">
+
+            <h3>🟤 Orgánico</h3>
+
+            <div class="barra">
+
+                <div
+                    id="barraOrganico"
+                    class="relleno"
+                    style="width: {{ niveles.organico.porcentaje }}%;">
+                </div>
+
+            </div>
+
+            <p>
+                <strong id="porcentajeOrganico">
+                    {{ niveles.organico.porcentaje }}%
+                </strong>
+            </p>
+
+            <p>
+                Distancia:
+                <span id="distanciaOrganico">
+                    {{ niveles.organico.distancia }}
+                </span>
+                cm
+            </p>
+
+        </div>
+
+
+        <!-- PAPEL -->
+
+        <div class="tarjeta">
+
+            <h3>📄 Papel-cartón</h3>
+
+            <div class="barra">
+
+                <div
+                    id="barraPapel"
+                    class="relleno"
+                    style="width: {{ niveles['papel-carton'].porcentaje }}%;">
+                </div>
+
+            </div>
+
+            <p>
+                <strong id="porcentajePapel">
+                    {{ niveles['papel-carton'].porcentaje }}%
+                </strong>
+            </p>
+
+            <p>
+                Distancia:
+                <span id="distanciaPapel">
+                    {{ niveles['papel-carton'].distancia }}
+                </span>
+                cm
+            </p>
+
+        </div>
+
+
+        <!-- PLÁSTICO -->
+
+        <div class="tarjeta">
+
+            <h3>🔵 Plástico</h3>
+
+            <div class="barra">
+
+                <div
+                    id="barraPlastico"
+                    class="relleno"
+                    style="width: {{ niveles.plastico.porcentaje }}%;">
+                </div>
+
+            </div>
+
+            <p>
+                <strong id="porcentajePlastico">
+                    {{ niveles.plastico.porcentaje }}%
+                </strong>
+            </p>
+
+            <p>
+                Distancia:
+                <span id="distanciaPlastico">
+                    {{ niveles.plastico.distancia }}
+                </span>
+                cm
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <p class="actualizacion">
+        La información se actualiza automáticamente.
+    </p>
+
+</div>
+
+
+<script>
+
+function actualizarDatos() {
+
+    fetch("/estado")
+
+        .then(response => response.json())
+
+        .then(data => {
+
+            const niveles = data.niveles;
+
+            const ultimo = data.ultimo_residuo;
+
+
+            // -------------------------------
+            // ORGÁNICO
+            // -------------------------------
+
+            document.getElementById(
+                "porcentajeOrganico"
+            ).innerText =
+                niveles.organico.porcentaje + "%";
+
+            document.getElementById(
+                "distanciaOrganico"
+            ).innerText =
+                niveles.organico.distancia;
+
+            document.getElementById(
+                "barraOrganico"
+            ).style.width =
+                niveles.organico.porcentaje + "%";
+
+
+            // -------------------------------
+            // PAPEL
+            // -------------------------------
+
+            document.getElementById(
+                "porcentajePapel"
+            ).innerText =
+                niveles["papel-carton"].porcentaje + "%";
+
+            document.getElementById(
+                "distanciaPapel"
+            ).innerText =
+                niveles["papel-carton"].distancia;
+
+            document.getElementById(
+                "barraPapel"
+            ).style.width =
+                niveles["papel-carton"].porcentaje + "%";
+
+
+            // -------------------------------
+            // PLÁSTICO
+            // -------------------------------
+
+            document.getElementById(
+                "porcentajePlastico"
+            ).innerText =
+                niveles.plastico.porcentaje + "%";
+
+            document.getElementById(
+                "distanciaPlastico"
+            ).innerText =
+                niveles.plastico.distancia;
+
+            document.getElementById(
+                "barraPlastico"
+            ).style.width =
+                niveles.plastico.porcentaje + "%";
+
+
+            // -------------------------------
+            // ÚLTIMO RESIDUO
+            // -------------------------------
+
+            document.getElementById(
+                "ultimoTipo"
+            ).innerText =
+                ultimo.tipo.toUpperCase();
+
+            document.getElementById(
+                "ultimaConfianza"
+            ).innerText =
+                ultimo.confianza + "%";
+
+            document.getElementById(
+                "ultimaHora"
+            ).innerText =
+                ultimo.hora;
+
+        })
+
+        .catch(error => {
+
+            console.log(
+                "Error actualizando datos:",
+                error
+            );
+
+        });
+}
+
+
+// Actualizar cada 2 segundos
+
+setInterval(
+    actualizarDatos,
+    2000
+);
+
+</script>
+
 </body>
+
 </html>
