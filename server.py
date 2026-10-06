@@ -72,8 +72,7 @@ def health():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-    # Ruta para mostrar el formulario de agregar sede
-@app.route('/agregar-sede', methods=['GET'])
+    @app.route('/agregar-sede', methods=['GET'])
 def vista_agregar_sede():
     return render_template('agregar_sede.html')
 
@@ -86,9 +85,13 @@ def guardar_sede():
         direccion = datos.get('direccion')
         ciudad = datos.get('ciudad')
         
-        # Aquí puedes vincular una base de datos o guardar en memoria
         print(f"--> Nueva Sede Registrada: {nombre}, {direccion} - {ciudad}")
-        
         return jsonify({"status": "success", "message": "Sede guardada correctamente"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000, debug=True)
+
+
