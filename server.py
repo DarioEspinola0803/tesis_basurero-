@@ -10,9 +10,9 @@ estado_contenedores = {
     "organico": {"porcentaje": 0, "ubicación": "Piso 1 - Cafetería", "estado": "Bajo"}
 }
 
-# ==============================================================================
+
 # RUTA PRINCIPAL (GET: Muestra la página web / POST: Recibe foto de la cámara)
-# ==============================================================================
+
 @app.route('/', methods=['GET', 'POST'])
 def recibir_imagen():
     # Si entras tú desde el navegador web (método GET):
@@ -39,9 +39,9 @@ def recibir_imagen():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ==============================================================================
+
 # RUTAS DE API PARA ACTUALIZAR Y LEER EL NIVEL EN TIEMPO REAL
-# ==============================================================================
+
 @app.route('/api/estado', methods=['GET'])
 def obtener_estado():
     return jsonify(estado_contenedores), 200
@@ -69,14 +69,13 @@ def actualizar_estado():
 def health():
     return jsonify({"status": "Servidor EcoSmart en línea"}), 200
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
-    @app.route('/agregar-sede', methods=['GET'])
+
+# AGREGAR SEDE
+
+@app.route('/agregar-sede', methods=['GET'])
 def vista_agregar_sede():
     return render_template('agregar_sede.html')
 
-# Ruta API para procesar y guardar la sede
 @app.route('/api/agregar-sede', methods=['POST'])
 def guardar_sede():
     try:
@@ -91,7 +90,9 @@ def guardar_sede():
         return jsonify({"error": str(e)}), 500
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000, debug=True)
+# INICIO DEL SERVIDOR 
 
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port, debug=True)
 
