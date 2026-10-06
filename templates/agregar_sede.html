@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoSmart - Agregar Sede</title>
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: #f3f4f6; color: #1f2937; display: flex; min-height: 100vh; }
+
+    /* Sidebar Sidebar Navigation */
+    .sidebar { width: 260px; background-color: #111827; color: #9ca3af; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; }
+    .brand { font-size: 22px; font-weight: 700; color: #10b981; padding: 0 24px 30px; display: flex; align-items: center; gap: 10px; }
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: #9ca3af; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+    .menu-item:hover, .menu-item.active { background-color: #1f2937; color: #10b981; border-left: 4px solid #10b981; }
+    .status-card { margin: 20px; padding: 15px; background: #1f2937; border-radius: 8px; font-size: 12px; color: #9ca3af; }
+    .status-card span { display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-right: 5px; }
+
+    /* Main Content */
+    .main-content { flex: 1; padding: 30px 40px; overflow-y: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .header-left .back-btn { background: #e5e7eb; color: #374151; border: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+    .header-left h1 { font-size: 26px; font-weight: 700; color: #111827; }
+    .header-left p { font-size: 14px; color: #6b7280; }
+    .user-profile { display: flex; align-items: center; gap: 15px; font-size: 14px; font-weight: 600; color: #374151; }
+
+    /* Cards */
+    .card { background: #ffffff; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card-title { font-size: 18px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .card-title i { color: #10b981; }
+
+    /* Form Layout */
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 15px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full-width { grid-column: span 3; }
+    .form-group label { font-size: 13px; font-weight: 600; color: #374151; }
+    .form-group label span { color: #ef4444; }
+    .form-control { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-control:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    
+    .coords-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+    /* Buttons */
+    .btn-submit { background-color: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; float: right; margin-top: 10px; }
+    .btn-submit:hover { background-color: #059669; }
+    .btn-add-container { background-color: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; float: right; }
+
+    /* Table */
+    .table-responsive { width: 100%; margin-top: 15px; border-collapse: collapse; }
+    .table-responsive th { text-align: left; padding: 12px; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+    .table-responsive td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; font-size: 14px; vertical-align: middle; }
+    
+    /* Residue Badge */
+    .residue-badge { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    .icon-box { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
+    .icon-plastico { background-color: #3b82f6; }
+    .icon-papel { background-color: #10b981; }
+    .icon-organico { background-color: #f97316; }
+
+    .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #d1fae5; color: #065f46; display: inline-flex; align-items: center; gap: 4px; }
+    .status-pill::before { content: ""; width: 6px; height: 6px; background: #10b981; border-radius: 50%; }
+
+    .action-btn { width: 32px; height: 32px; border: none; border-radius: 6px; color: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-right: 4px; }
+    .btn-edit { background-color: #3b82f6; }
+    .btn-delete { background-color: #ef4444; }
+
+    .info-box { background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-top: 20px; display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- Menu Lateral -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand"><i class="fa-solid fa-recycle"></i> EcoSmart</div>
+      <a href="/" class="menu-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+      <a href="#" class="menu-item"><i class="fa-solid fa-trash-can"></i> Mis Contenedores</a>
+      <a href="#" class="menu-item"><i class="fa-solid fa-bell"></i> Alertas</a>
+      <a href="/agregar-sede" class="menu-item active"><i class="fa-solid fa-circle-plus"></i> Agregar Sede</a>
+    </div>
+    <div class="status-card">
+      <p><span></span> <strong>Sistema Conectado</strong></p>
+      <p style="margin-top: 4px;">Actualización: En vivo</p>
+    </div>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <main class="main-content">
+    <div class="header">
+      <div class="header-left">
+        <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Volver al panel</a>
+        <h1>Agregar Sede</h1>
+        <p>Registra una nueva sede y configura sus contenedores</p>
+      </div>
+      <div class="user-profile">
+        <i class="fa-regular fa-bell"></i>
+        <i class="fa-solid fa-circle-user" style="font-size: 24px;"></i>
+        Administrador
+      </div>
+    </div>
+
+    <form id="formSede" action="/api/agregar-sede" method="POST">
+      <!-- Card 1: Información de la Sede -->
+      <div class="card">
+        <div class="card-title">
+          <i class="fa-solid fa-location-dot"></i> Información de la sede
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre de la sede <span>*</span></label>
+            <input type="text" name="nombre" class="form-control" placeholder="Ej: Facultad de Ingeniería - Campus Central" required>
+          </div>
+          <div class="form-group">
+            <label>Dirección <span>*</span></label>
+            <input type="text" name="direccion" class="form-control" placeholder="Ej: Av. Universitaria c/ Tte. Fariña" required>
+          </div>
+          <div class="form-group">
+            <label>Ciudad / Estado <span>*</span></label>
+            <select name="ciudad" class="form-control" required>
+              <option value="">Seleccionar...</option>
+              <option value="Encarnación">Encarnación</option>
+              <option value="Asunción">Asunción</option>
+              <option value="Ciudad del Este">Ciudad del Este</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Coordenadas (opcional)</label>
+            <div class="coords-group">
+              <input type="text" name="latitud" class="form-control" placeholder="Latitud (ej: -27.3305)">
+              <input type="text" name="longitud" class="form-control" placeholder="Longitud (ej: -55.8667)">
+            </div>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Descripción (opcional)</label>
+            <textarea name="descripcion" class="form-control" rows="1" placeholder="Ej: Sede principal de la facultad. Cuenta con 3 contenedores..."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Guardar sede</button>
+        <div style="clear: both;"></div>
+      </div>
+
+      <!-- Card 2: Contenedores de la sede -->
+      <div class="card">
+        <div class="header" style="margin-bottom: 0;">
+          <div>
+            <div class="card-title" style="margin-bottom: 4px;">
+              <i class="fa-solid fa-trash"></i> Contenedores de la sede
+            </div>
+            <p style="font-size: 13px; color: #6b7280;">Agrega los contenedores que tendrá esta sede. Puedes añadir más después.</p>
+          </div>
+          <button type="button" class="btn-add-container"><i class="fa-solid fa-plus"></i> Agregar contenedor</button>
+        </div>
+
+        <table class="table-responsive">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Tipo de residuo</th>
+              <th>Nombre del contenedor</th>
+              <th>Capacidad (L)</th>
+              <th>Sensor de nivel</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                <div class="residue-badge">
+                  <div class="icon-box icon-plastico"><i class="fa-solid fa-bottle-water"></i></div>
+                  <div>Plástico<br><small style="color: #6b7280; font-weight: normal;">Color: Azul</small></div>
+                </div>
+              </td>
+              <td><input type="text" class="form-control" value="Contenedor Plástico"></td>
+              <td><input type="number" class="form-control" value="100" style="width: 80px;"></td>
+              <td>
+                <select class="form-control">
+                  <option selected>Ultrasónico 1</option>
+                  <option>Ultrasónico 2</option>
+                  <option>Ultrasónico 3</option>
+                </select>
+              </td>
+              <td><span class="status-pill">Activo</span></td>
+              <td>
+                <button type="button" class="action-btn btn-edit"><i class="fa-solid fa-pen"></i></button>
+                <button type="button" class="action-btn btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                <div class="residue-badge">
+                  <div class="icon-box icon-papel"><i class="fa-solid fa-box"></i></div>
+                  <div>Papel<br><small style="color: #6b7280; font-weight: normal;">Color: Verde</small></div>
+                </div>
+              </td>
+              <td><input type="text" class="form-control" value="Contenedor Papel"></td>
+              <td><input type="number" class="form-control" value="100" style="width: 80px;"></td>
+              <td>
+                <select class="form-control">
+                  <option>Ultrasónico 1</option>
+                  <option selected>Ultrasónico 2</option>
+                  <option>Ultrasónico 3</option>
+                </select>
+              </td>
+              <td><span class="status-pill">Activo</span></td>
+              <td>
+                <button type="button" class="action-btn btn-edit"><i class="fa-solid fa-pen"></i></button>
+                <button type="button" class="action-btn btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>
+                <div class="residue-badge">
+                  <div class="icon-box icon-organico"><i class="fa-solid fa-leaf"></i></div>
+                  <div>Orgánico<br><small style="color: #6b7280; font-weight: normal;">Color: Rojo</small></div>
+                </div>
+              </td>
+              <td><input type="text" class="form-control" value="Contenedor Orgánico"></td>
+              <td><input type="number" class="form-control" value="100" style="width: 80px;"></td>
+              <td>
+                <select class="form-control">
+                  <option>Ultrasónico 1</option>
+                  <option>Ultrasónico 2</option>
+                  <option selected>Ultrasónico 3</option>
+                </select>
+              </td>
+              <td><span class="status-pill">Activo</span></td>
+              <td>
+                <button type="button" class="action-btn btn-edit"><i class="fa-solid fa-pen"></i></button>
+                <button type="button" class="action-btn btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="info-box">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Los sensores ultrasónicos se utilizan para medir el nivel de llenado de cada contenedor. Puedes asignar los sensores según la conexión física que tengas en tu hardware.</span>
+        </div>
+      </div>
+    </form>
+  </main>
+
+</body>
+</html>
