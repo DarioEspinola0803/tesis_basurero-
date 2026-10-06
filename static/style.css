@@ -459,3 +459,64 @@ nav {
     margin-bottom: 20px;
     color: var(--text-primary);
 }
+   /* ==========================================
+   ADAPTACIÓN PARA DISPOSITIVOS MÓVILES
+   ========================================== */
+
+@media (max-width: 768px) {
+  /* Cambia el layout de la página de horizontal a vertical */
+  .container {
+    flex-direction: column !important;
+  }
+
+  /* La barra lateral pasa a la parte superior */
+  .sidebar {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 15px !important;
+  }
+
+  .sidebar nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .sidebar nav hr {
+    display: none; /* Oculta la línea divisoria en móviles */
+  }
+
+  .nav-item {
+    flex: 1 1 45%; /* Los botones del menú ocupan 2 columnas */
+    justify-content: center;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
+
+  .status-box {
+    display: none; /* Se oculta para ahorrar espacio en la pantalla del celular */
+  }
+
+  /* Área principal */
+  .main-content {
+    padding: 15px !important;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+
+  /* Las tarjetas de Plastico, Papel y Orgánico se apilan a 1 sola columna */
+  .cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+
+  /* Ajustes en el gráfico */
+  .chart-card {
+    padding: 15px !important;
+  }
+}
